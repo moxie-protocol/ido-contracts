@@ -570,7 +570,7 @@ describe("EasyAuction", async () => {
           "0x",
         ),
       ).to.be.revertedWith(
-        "Transaction reverted and Hardhat couldn't infer the reason. Please report this to help us improve Hardhat",
+        "Transaction reverted and Hardhat couldn't infer the reason.",
       );
     });
 
@@ -2936,13 +2936,13 @@ describe("EasyAuction", async () => {
       await expect(
         easyAuction.cancelSellOrders(auctionId, [encodeOrder(sellOrders[0])]),
       ).to.be.revertedWith(
-        "revert no longer in order placement and cancelation phase",
+        "no longer in order placement and cancelation phase",
       );
       await closeAuction(easyAuction, auctionId);
       await expect(
         easyAuction.cancelSellOrders(auctionId, [encodeOrder(sellOrders[0])]),
       ).to.be.revertedWith(
-        "revert no longer in order placement and cancelation phase",
+        "no longer in order placement and cancelation phase",
       );
     });
     it("can't cancel orders twice", async () => {
