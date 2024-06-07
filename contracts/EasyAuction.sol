@@ -130,7 +130,7 @@ contract EasyAuction is Ownable {
     uint256 public constant FEE_DENOMINATOR = 1000;
     uint64 public feeReceiverUserId = 1;
 
-    function setSubjectFactory(address subjectFactoryAddress) public onlyOwner {
+    function setSubjectFactory(address subjectFactoryAddress) external onlyOwner {
         subjectFactory = subjectFactoryAddress;
     }
 
@@ -468,7 +468,7 @@ contract EasyAuction is Ownable {
         returns (bytes32 clearingOrder)
     {
         require(
-            subjectFactory == msg.sender,
+            subjectFactory == msg.sender  || msg.sender == address(this),
             "Caller is not the subject factory address"
         );
         (

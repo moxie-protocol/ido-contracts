@@ -1,4 +1,4 @@
-import { Contract, BigNumber } from "ethers";
+import { Contract, BigNumber, Wallet } from "ethers";
 import { ethers } from "hardhat";
 
 import { InitiateAuctionInput } from "../../src/ts/types";
@@ -25,6 +25,17 @@ async function createAuctionInputWithDefaults(
     parameters.allowListManager ?? "0x0000000000000000000000000000000000000000",
     parameters.allowListData ?? "0x",
   ];
+}
+
+export async function setSubjectFactoryAddress(
+  easyAuction: Contract,
+  subjectFactoryAddress: Wallet,
+  owner: Wallet,
+): Promise<unknown> {
+  const tx = await easyAuction
+    .connect(owner)
+    .setSubjectFactory(subjectFactoryAddress.address);
+  return tx.wait();
 }
 
 export async function createAuctionWithDefaults(
