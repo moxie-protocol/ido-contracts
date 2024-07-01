@@ -122,16 +122,22 @@ contract EasyAuction is Ownable {
     uint64 public numUsers;
     uint256 public auctionCounter;
 
+    address public subjectFactory;
+
     constructor() public Ownable() {}
 
     uint256 public feeNumerator = 0;
     uint256 public constant FEE_DENOMINATOR = 1000;
     uint64 public feeReceiverUserId = 1;
 
+    function setSubjectFactory(address subjectFactoryAddress) external onlyOwner {
+        subjectFactory = subjectFactoryAddress;
+    }
+
     function setFeeParameters(
         uint256 newFeeNumerator,
         address newfeeReceiverAddress
-    ) public onlyOwner() {
+    ) public onlyOwner {
         require(
             newFeeNumerator <= 15,
             "Fee is not allowed to be set higher than 1.5%"
@@ -162,6 +168,10 @@ contract EasyAuction is Ownable {
         address accessManagerContract,
         bytes memory accessManagerContractData
     ) public returns (uint256) {
+        require(
+            subjectFactory == msg.sender,
+            "Caller is not the subject factory address"
+        );
         // withdraws sellAmount + fees
         _auctioningToken.safeTransferFrom(
             msg.sender,
@@ -418,6 +428,10 @@ contract EasyAuction is Ownable {
         bytes calldata allowListCallData
     ) public atStageSolutionSubmission(auctionId) {
         require(
+            subjectFactory == msg.sender,
+            "Caller is not the subject factory address"
+        );
+        require(
             auctionData[auctionId].isAtomicClosureAllowed,
             "not allowed to settle auction atomically"
         );
@@ -453,6 +467,10 @@ contract EasyAuction is Ownable {
         atStageSolutionSubmission(auctionId)
         returns (bytes32 clearingOrder)
     {
+        require(
+            subjectFactory == msg.sender  || msg.sender == address(this),
+            "Caller is not the subject factory address"
+        );
         (
             uint64 auctioneerId,
             uint96 minAuctionedBuyAmount,

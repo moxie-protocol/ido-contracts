@@ -6,7 +6,10 @@ import {
   placeOrders,
 } from "../../src/priceCalculation";
 
-import { createAuctionWithDefaultsAndReturnId } from "./defaultContractInteractions";
+import {
+  createAuctionWithDefaultsAndReturnId,
+  setSubjectFactoryAddress,
+} from "./defaultContractInteractions";
 import { closeAuction } from "./utilities";
 
 describe("EasyAuction", async () => {
@@ -16,6 +19,9 @@ describe("EasyAuction", async () => {
     const EasyAuction = await ethers.getContractFactory("EasyAuction");
 
     easyAuction = await EasyAuction.deploy();
+    // As for the existing tests most of the time we are using user_1 will call the functions,
+    // so setting the subject factory address to user_1 so that we can test the functions with min change.
+    await setSubjectFactoryAddress(easyAuction, user_1, user_1);
   });
 
   it("e2e - places a lot of sellOrders, such that the second last order is the clearingOrder and calculates the price to test gas usage of settleAuction", async () => {

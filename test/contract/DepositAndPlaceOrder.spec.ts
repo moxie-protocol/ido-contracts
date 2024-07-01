@@ -10,7 +10,10 @@ import {
   encodeOrder,
 } from "../../src/priceCalculation";
 
-import { createAuctionWithDefaultsAndReturnId } from "./defaultContractInteractions";
+import {
+  createAuctionWithDefaultsAndReturnId,
+  setSubjectFactoryAddress,
+} from "./defaultContractInteractions";
 
 describe("DepositAndPlaceOrder - integration tests", async () => {
   const [user_1, user_2] = waffle.provider.getWallets();
@@ -21,6 +24,9 @@ describe("DepositAndPlaceOrder - integration tests", async () => {
     const EasyAuction = await ethers.getContractFactory("EasyAuction");
 
     easyAuction = await EasyAuction.deploy();
+    // As for the existing tests most of the time we are using user_1 will call the functions,
+    // so setting the subject factory address to user_1 so that we can test the functions with min change.
+    await setSubjectFactoryAddress(easyAuction, user_1, user_1);
     const WETH9 = await ethers.getContractFactory("WETH9");
     weth9 = await WETH9.deploy();
     const DepositAndPlaceOrder = await ethers.getContractFactory(

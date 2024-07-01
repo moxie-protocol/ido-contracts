@@ -18,6 +18,7 @@ import {
 import {
   createAuctionWithDefaults,
   createAuctionWithDefaultsAndReturnId,
+  setSubjectFactoryAddress,
 } from "./defaultContractInteractions";
 import {
   sendTxAndGetReturnValue,
@@ -39,6 +40,9 @@ describe("EasyAuction", async () => {
     const EasyAuction = await ethers.getContractFactory("EasyAuction");
 
     easyAuction = await EasyAuction.deploy();
+    // As for the existing tests most of the time we are using user_1 will call the functions,
+    // so setting the subject factory address to user_1 so that we can test the functions with min change.
+    await setSubjectFactoryAddress(easyAuction, user_1, user_1);
   });
   describe("initiate Auction", async () => {
     it("throws if minimumBiddingAmountPerOrder is zero", async () => {
@@ -2771,7 +2775,7 @@ describe("EasyAuction", async () => {
 
       await closeAuction(easyAuction, auctionId);
       await easyAuction
-        .connect(user_2)
+        .connect(user_1)
         .settleAuctionAtomically(
           auctionId,
           [atomicSellOrders[0].sellAmount],
