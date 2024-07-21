@@ -583,6 +583,75 @@ contract EasyAuction is Ownable {
         auctionData[auctionId].minimumBiddingAmountPerOrder = uint256(0);
     }
 
+    /**
+     * Estimate allocation & returns for a bidder after auction is settled. 
+     * @param auctionId Auction Id.
+     * @param orders List of orders for specific user. 
+     * @return sumAuctioningTokenAmount Sum of auction token users will recieve. 
+     * @return sumBiddingTokenAmount Sum of total bid amount.
+     */
+    function claimFromParticipantOrderEstimates(
+        uint256 auctionId,
+        bytes32[] memory orders
+    )
+        external
+        view
+        atStageFinished(auctionId)
+        returns (
+            uint256 sumAuctioningTokenAmount,
+            uint256 sumBiddingTokenAmount
+        )
+    {
+        AuctionData memory auction = auctionData[auctionId];
+        (, uint96 priceNumerator, uint96 priceDenominator) = auction
+            .clearingPriceOrder
+            .decodeOrder();
+        (uint64 userId, , ) = orders[0].decodeOrder();
+        bool minFundingThresholdNotReached = auctionData[auctionId]
+            .minFundingThresholdNotReached;
+        for (uint256 i = 0; i < orders.length; i++) {
+            (uint64 userIdOrder, , uint96 sellAmount) = orders[
+                i
+            ].decodeOrder();
+            require(
+                userIdOrder == userId,
+                "only allowed to claim for same user"
+            );
+            if (minFundingThresholdNotReached) {
+                //[10]
+                sumBiddingTokenAmount = sumBiddingTokenAmount.add(sellAmount);
+            } else {
+                //[23]
+                if (orders[i] == auction.clearingPriceOrder) {
+                    //[25]
+                    sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
+                        auction
+                            .volumeClearingPriceOrder
+                            .mul(priceNumerator)
+                            .div(priceDenominator)
+                    );
+                    sumBiddingTokenAmount = sumBiddingTokenAmount.add(
+                        sellAmount.sub(auction.volumeClearingPriceOrder)
+                    );
+                } else {
+                    if (orders[i].smallerThan(auction.clearingPriceOrder)) {
+                        //[17]
+                        sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
+                                sellAmount.mul(priceNumerator).div(
+                                    priceDenominator
+                                )
+                            );
+                    } else {
+                        //[24]
+                        sumBiddingTokenAmount = sumBiddingTokenAmount.add(
+                            sellAmount
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     function claimFromParticipantOrder(
         uint256 auctionId,
         bytes32[] memory orders
